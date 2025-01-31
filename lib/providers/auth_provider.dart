@@ -8,20 +8,28 @@ class AuthProvider with ChangeNotifier {
   final AuthService _authService;
   UserModel? _user;
   bool isLoading = false;
+  bool _isInitialized = false;
 
   AuthProvider(this._authService) {
     _initAuthListener();
   }
 
+  bool get isInitialized => _isInitialized;
   UserModel? get currentUser => _user;
 
   Future<void> _initAuthListener() async {
+    User? currentUser = FirebaseAuth.instance.currentUser;
+    if (currentUser != null) {
+      _user = await _loadUserData(currentUser.uid);
+    }
+
     FirebaseAuth.instance.authStateChanges().listen((User? firebaseUser) async {
       if (firebaseUser == null) {
         _user = null;
       } else {
         _user = await _loadUserData(firebaseUser.uid);
       }
+      _isInitialized = true;
       notifyListeners();
     });
   }

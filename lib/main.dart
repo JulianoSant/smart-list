@@ -9,6 +9,7 @@ import 'package:smart_list/core/services/api_service.dart';
 import 'package:smart_list/core/themes.dart';
 import 'package:smart_list/providers/auth_provider.dart';
 import 'package:smart_list/providers/contact_provider.dart';
+import 'package:smart_list/views/home/loading_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -43,8 +44,6 @@ void main() async {
   );
 }
 
-class DefaultFirebaseOptions {}
-
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
@@ -55,6 +54,11 @@ class MyApp extends StatelessWidget {
       theme: AppThemes.lightTheme,
       // darkTheme: AppThemes.darkTheme,
       routerConfig: AppRoutes.router,
+      builder: (context, child) {
+        final auth = Provider.of<AuthProvider>(context);
+
+        return auth.isInitialized ? child! : const InitializationScreen();
+      },
     );
   }
 }

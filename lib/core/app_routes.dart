@@ -23,7 +23,7 @@ class AppRoutes {
         path: '/signup',
         pageBuilder: (context, state) => MaterialPage(
           key: state.pageKey,
-          child: SignupScreen(),
+          child: const SignupScreen(),
         ),
       ),
       GoRoute(
@@ -60,6 +60,8 @@ class AppRoutes {
     ],
     redirect: (context, state) {
       final auth = Provider.of<AuthProvider>(context, listen: false);
+      if (!auth.isInitialized) return null;
+
       final isLoggedIn = auth.currentUser != null;
       final isAuthRoute = state.location.startsWith('/login') || state.location.startsWith('/signup');
 

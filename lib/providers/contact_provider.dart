@@ -79,7 +79,7 @@ class ContactProvider with ChangeNotifier {
     );
 
     await _firestoreService.addContact(userId, newContact);
-    getContacts(userId).then(updateContacts);
+    _contacts = await getContacts(userId);
     notifyListeners();
   }
 
@@ -93,9 +93,17 @@ class ContactProvider with ChangeNotifier {
   }
 
   Future<void> deleteContact(String userId, String contactId) async {
-    await _firestoreService.deleteContact(userId, contactId);
-    _contacts.removeWhere((c) => c.id == contactId);
-    notifyListeners();
+    try {
+      await _firestoreService.deleteContact(userId, contactId);
+
+      if (_contacts.isNotEmpty) {
+        _contacts = _contacts.where((c) => c.id != contactId).toList();
+        notifyListeners();
+      }
+    } catch (e) {
+      debugPrint("Erro ao deletar contato: $e");
+      throw Exception("Falha ao excluir o contato. Tente novamente.");
+    }
   }
 }
 

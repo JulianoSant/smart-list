@@ -99,9 +99,6 @@ class ContactDetailsScreen extends StatelessWidget {
               await contactProvider.deleteContact(auth.currentUser!.uid, contactId);
               if (context.mounted) {
                 context.go('/home');
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Contato excluído com sucesso!')),
-                );
               }
             },
             child: Text('Excluir', style: TextStyle(color: Theme.of(context).colorScheme.error)),
