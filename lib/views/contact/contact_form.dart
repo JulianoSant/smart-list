@@ -1,14 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:smart_list/core/utils/formatters.dart';
 import 'package:smart_list/core/utils/validators.dart';
 import 'package:smart_list/models/contact_model.dart';
 import 'package:smart_list/providers/auth_provider.dart';
 import 'package:smart_list/providers/contact_provider.dart';
-import 'package:smart_list/core/services/api_service.dart';
 
 class ContactForm extends StatefulWidget {
   const ContactForm({super.key});
@@ -24,63 +22,10 @@ class _ContactFormState extends State<ContactForm> {
   final _cpfController = TextEditingController();
   final _phoneController = TextEditingController();
 
-  String _address = '';
-  LatLng? _coordinates;
-  bool _isFetchingAddress = false;
-
-  Future<void> _fetchAddress() async {
-    final cep = _cepController.text.replaceAll(RegExp(r'[^0-9]'), '');
-    if (cep.length != 8) return;
-
-    setState(() => _isFetchingAddress = true);
-
-    try {
-      final addressData = await Provider.of<ApiService>(context, listen: false).fetchAddress(cep);
-      setState(() {
-        _address = '${addressData['logradouro']}, ${addressData['bairro']}, '
-            '${addressData['localidade']}-${addressData['uf']}';
-      });
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('CEP inválido ou não encontrado.')));
-    } finally {
-      setState(() => _isFetchingAddress = false);
-    }
-  }
-
-  Future<void> _submit() async {
-    if (!_formKey.currentState!.validate()) return;
-
-    final contactProvider = Provider.of<ContactProvider>(context, listen: false);
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    final apiService = Provider.of<ApiService>(context, listen: false);
-
-    try {
-      final coordinates = await apiService.getCoordinates(_address);
-
-      final newContact = Contact(
-        name: _nameController.text,
-        cpf: _cpfController.text,
-        phone: _phoneController.text,
-        address: _address,
-        lat: coordinates.latitude,
-        lng: coordinates.longitude,
-      );
-
-      await contactProvider.addContact(authProvider.currentUser!.uid, newContact);
-
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${_nameController.text} adicionado com sucesso!')),
-        );
-        GoRouter.of(context).go('/home');
-      }
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erro ao salvar contato: ${e.toString()}')));
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
+    final contactProvider = Provider.of<ContactProvider>(context);
+    final authProvider = Provider.of<AuthProvider>(context);
     final theme = Theme.of(context);
 
     return Scaffold(
@@ -119,34 +64,49 @@ class _ContactFormState extends State<ContactForm> {
                 icon: Icons.location_on,
                 inputFormatters: [CepInputFormatter()],
                 keyboardType: TextInputType.number,
-                suffixIcon: _isFetchingAddress
+                suffixIcon: contactProvider.isFetchingAddress
                     ? const Padding(
                         padding: EdgeInsets.all(12.0),
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
                     : IconButton(
                         icon: const Icon(Icons.search),
-                        onPressed: _fetchAddress,
+                        onPressed: () => contactProvider.fetchAddress(_cepController.text),
                       ),
               ),
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 8.0),
                 child: Text(
-                  _address.isNotEmpty ? _address : 'Endereço será preenchido automaticamente',
+                  contactProvider.fetchedAddress.isNotEmpty
+                      ? contactProvider.fetchedAddress
+                      : 'Endereço será preenchido automaticamente',
                   style: theme.textTheme.bodyMedium?.copyWith(
-                    fontStyle: _address.isNotEmpty ? FontStyle.normal : FontStyle.italic,
-                    color: _address.isNotEmpty ? theme.colorScheme.primary : theme.colorScheme.onSurfaceVariant,
+                    fontStyle: contactProvider.fetchedAddress.isNotEmpty ? FontStyle.normal : FontStyle.italic,
+                    color: contactProvider.fetchedAddress.isNotEmpty
+                        ? theme.colorScheme.primary
+                        : theme.colorScheme.onSurfaceVariant,
                   ),
                 ),
               ),
               const SizedBox(height: 16),
               ElevatedButton.icon(
-                onPressed: _submit,
+                onPressed: () async {
+                  if (_formKey.currentState!.validate()) {
+                    final newContact = Contact(
+                      name: _nameController.text,
+                      cpf: _cpfController.text,
+                      phone: _phoneController.text,
+                      address: contactProvider.fetchedAddress,
+                      lat: 0,
+                      lng: 0,
+                    );
+
+                    await contactProvider.addContact(authProvider.currentUser!.uid, newContact);
+                    if (context.mounted) context.go('/home');
+                  }
+                },
                 icon: const Icon(Icons.save),
                 label: const Text('Salvar Contato'),
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                ),
               ),
             ],
           ),

@@ -25,6 +25,7 @@ void main() async {
 
   final authService = AuthService();
   final firestoreService = FirestoreService();
+  final apiService = ApiService();
 
   runApp(
     MultiProvider(
@@ -33,7 +34,7 @@ void main() async {
           create: (_) => AuthProvider(authService),
         ),
         ChangeNotifierProvider(
-          create: (_) => ContactProvider(firestoreService),
+          create: (_) => ContactProvider(firestoreService, apiService),
         ),
         Provider(create: (_) => ApiService()),
       ],
