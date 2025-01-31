@@ -27,8 +27,8 @@ class SettingsScreen extends StatelessWidget {
           _buildSettingsOption(
             icon: Icons.logout,
             title: 'Sair',
-            onTap: () {
-              authProvider.logout();
+            onTap: () async {
+              await authProvider.logout();
               context.go('/login');
             },
           ),
