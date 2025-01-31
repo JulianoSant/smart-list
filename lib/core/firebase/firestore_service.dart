@@ -11,8 +11,10 @@ class FirestoreService {
         );
   }
 
-  Stream<List<Contact>> getContacts(String userId) {
-    return contactsRef(userId).snapshots().map((snapshot) => snapshot.docs.map((doc) => doc.data()).toList());
+  Future<List<Contact>> getContacts(String userId) {
+    return contactsRef(userId).get().then((snapshot) {
+      return snapshot.docs.map((doc) => doc.data()).toList();
+    });
   }
 
   Future<void> addContact(String userId, Contact contact) async {

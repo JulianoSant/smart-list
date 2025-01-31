@@ -12,27 +12,90 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final auth = context.watch<AuthProvider>();
-    final contactProvider = context.watch<ContactProvider>();
+    final contactProvider = context.read<ContactProvider>();
+    final theme = Theme.of(context);
 
-    return StreamBuilder<List<Contact>>(
-      stream: contactProvider.getContactsStream(auth.currentUser?.uid ?? ''),
-      builder: (context, snapshot) {
-        if (snapshot.hasData) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            contactProvider.updateContacts(snapshot.data!);
-          });
-
+    return FutureProvider<List<Contact>?>(
+      create: (_) => contactProvider.getContacts(auth.currentUser?.uid ?? ''),
+      initialData: null,
+      catchError: (_, __) => [],
+      child: Consumer<List<Contact>?>(builder: (context, contacts, child) {
+        if (contacts == null) {
           return Scaffold(
-            appBar: AppBar(title: const Text('Meus Contatos')),
-            body: const ContactList(),
-            floatingActionButton: FloatingActionButton(
-              onPressed: () => context.go('/home/new-contact'),
-              child: const Icon(Icons.add),
+            body: Center(
+              child: CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation(theme.colorScheme.primary),
+              ),
             ),
           );
         }
-        return const Scaffold(body: Center(child: CircularProgressIndicator()));
-      },
+
+        if (contacts.isEmpty) {
+          return Scaffold(
+            appBar: _buildAppBar(theme),
+            drawer: _buildDrawer(context, theme),
+            body: Center(
+              child: Text(
+                'Nenhum contato encontrado',
+                style: theme.textTheme.bodyMedium,
+              ),
+            ),
+            floatingActionButton: _buildFAB(context, theme),
+          );
+        }
+
+        contactProvider.updateContacts(contacts);
+
+        return Scaffold(
+          appBar: _buildAppBar(theme),
+          drawer: _buildDrawer(context, theme),
+          body: const ContactList(),
+          floatingActionButton: _buildFAB(context, theme),
+        );
+      }),
+    );
+  }
+
+  AppBar _buildAppBar(ThemeData theme) {
+    return AppBar(
+      title: const Text('Meus Contatos'),
+      backgroundColor: theme.colorScheme.primary,
+      foregroundColor: Colors.white,
+      elevation: 2,
+      centerTitle: true,
+    );
+  }
+
+  Drawer _buildDrawer(BuildContext context, ThemeData theme) {
+    return Drawer(
+      child: ListView(
+        padding: EdgeInsets.zero,
+        children: [
+          DrawerHeader(
+            decoration: BoxDecoration(color: theme.colorScheme.primary),
+            child: const Text(
+              'Menu',
+              style: TextStyle(color: Colors.white, fontSize: 24),
+            ),
+          ),
+          ListTile(
+            leading: const Icon(Icons.settings),
+            title: const Text('Configurações'),
+            onTap: () {
+              Navigator.pop(context);
+              context.go('/home/settings');
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  FloatingActionButton _buildFAB(BuildContext context, ThemeData theme) {
+    return FloatingActionButton(
+      onPressed: () => context.go('/home/new-contact'),
+      backgroundColor: theme.colorScheme.secondary,
+      child: const Icon(Icons.add, color: Colors.white),
     );
   }
 }

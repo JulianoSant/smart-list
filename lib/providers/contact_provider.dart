@@ -45,12 +45,13 @@ class ContactProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  Stream<List<Contact>> getContactsStream(String userId) {
+  Future<List<Contact>> getContacts(String userId) {
     return _firestoreService.getContacts(userId);
   }
 
   Future<void> addContact(String userId, Contact contact) async {
     await _firestoreService.addContact(userId, contact);
+    notifyListeners();
   }
 
   Future<void> deleteContact(String userId, String contactId) async {

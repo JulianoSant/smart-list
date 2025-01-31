@@ -52,7 +52,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp.router(
       debugShowCheckedModeBanner: false,
       theme: AppThemes.lightTheme,
-      darkTheme: AppThemes.darkTheme,
+      // darkTheme: AppThemes.darkTheme,
       routerConfig: AppRoutes.router,
     );
   }

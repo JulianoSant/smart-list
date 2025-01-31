@@ -12,32 +12,39 @@ class ContactCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final auth = Provider.of<AuthProvider>(context, listen: false);
-    final contactProvider = Provider.of<ContactProvider>(context, listen: false);
+    final auth = context.read<AuthProvider>();
+    final contactProvider = context.read<ContactProvider>();
+    final theme = Theme.of(context);
 
     return Dismissible(
       key: Key(contact.id ?? UniqueKey().toString()),
       direction: DismissDirection.endToStart,
       background: Container(
-        color: Colors.red,
+        decoration: BoxDecoration(
+          color: theme.colorScheme.error,
+          borderRadius: BorderRadius.circular(10),
+        ),
         alignment: Alignment.centerRight,
         padding: const EdgeInsets.symmetric(horizontal: 20),
-        child: const Icon(Icons.delete, color: Colors.white),
+        child: const Icon(Icons.delete, color: Colors.white, size: 30),
       ),
       confirmDismiss: (direction) async {
         return await showDialog(
           context: context,
           builder: (ctx) => AlertDialog(
-            title: const Text('Confirmar Exclusão'),
+            title: Text(
+              'Confirmar Exclusão',
+              style: theme.textTheme.headlineSmall,
+            ),
             content: const Text('Deseja remover este contato permanentemente?'),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(ctx, false),
-                child: const Text('Cancelar'),
+                child: Text('Cancelar', style: TextStyle(color: theme.colorScheme.primary)),
               ),
               TextButton(
                 onPressed: () => Navigator.pop(ctx, true),
-                child: const Text('Excluir', style: TextStyle(color: Colors.red)),
+                child: Text('Excluir', style: TextStyle(color: theme.colorScheme.error)),
               ),
             ],
           ),
@@ -47,14 +54,40 @@ class ContactCard extends StatelessWidget {
         if (auth.currentUser != null) {
           contactProvider.deleteContact(auth.currentUser!.uid, contact.id!);
         }
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('${contact.name} foi removido'),
+            backgroundColor: theme.colorScheme.error,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
       },
       child: Card(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         elevation: 2,
-        margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+        color: theme.colorScheme.surface,
         child: ListTile(
-          title: Text(contact.name, style: const TextStyle(fontWeight: FontWeight.bold)),
-          subtitle: Text("CPF: ${contact.cpf}"),
-          trailing: const Icon(Icons.chevron_right, color: Colors.grey),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          leading: CircleAvatar(
+            backgroundColor: theme.colorScheme.primary,
+            radius: 25,
+            child: Text(
+              contact.name[0].toUpperCase(),
+              style: theme.textTheme.headlineSmall?.copyWith(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+          title: Text(
+            contact.name,
+            style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w600),
+          ),
+          subtitle: Text(
+            "CPF: ${contact.cpf}",
+            style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurface.withOpacity(0.7)),
+          ),
+          trailing: Icon(Icons.chevron_right, color: theme.colorScheme.onSurface.withOpacity(0.6)),
           onTap: onTap,
         ),
       ),
