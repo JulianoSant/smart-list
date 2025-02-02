@@ -10,49 +10,79 @@ class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
   @override
+  // Widget build(BuildContext context) {
+  //   final auth = context.watch<AuthProvider>();
+  //   final contactProvider = context.watch<ContactProvider>();
+  //   final theme = Theme.of(context);
+
+  //   return FutureBuilder<List<Contact>>(
+  //     future: contactProvider.getContacts(auth.currentUser?.uid ?? ''),
+  //     builder: (context, snapshot) {
+  //       if (snapshot.connectionState == ConnectionState.waiting) {
+  //         return Scaffold(
+  //           body: Center(
+  //             child: CircularProgressIndicator(
+  //               valueColor: AlwaysStoppedAnimation(theme.colorScheme.primary),
+  //             ),
+  //           ),
+  //         );
+  //       }
+
+  //       if (snapshot.hasError || !snapshot.hasData || snapshot.data!.isEmpty) {
+  //         return Scaffold(
+  //           appBar: _buildAppBar(theme),
+  //           drawer: _buildDrawer(context, theme),
+  //           body: Center(
+  //             child: Text(
+  //               'Nenhum contato encontrado',
+  //               style: theme.textTheme.bodyMedium,
+  //             ),
+  //           ),
+  //           floatingActionButton: _buildFAB(context, theme),
+  //         );
+  //       }
+
+  //       if (contactProvider.contacts.isEmpty) {
+  //         contactProvider.updateContacts(snapshot.data!);
+  //       }
+
+  //       return Scaffold(
+  //         appBar: _buildAppBar(theme),
+  //         drawer: _buildDrawer(context, theme),
+  //         body: const ContactList(),
+  //         floatingActionButton: _buildFAB(context, theme),
+  //       );
+  //     },
+  //   );
+  // }
   Widget build(BuildContext context) {
     final auth = context.watch<AuthProvider>();
-    final contactProvider = context.watch<ContactProvider>();
+    final contactProvider = context.read<ContactProvider>();
     final theme = Theme.of(context);
 
-    return FutureBuilder<List<Contact>>(
-      future: contactProvider.getContacts(auth.currentUser?.uid ?? ''),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return Scaffold(
-            body: Center(
-              child: CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation(theme.colorScheme.primary),
-              ),
-            ),
-          );
-        }
-
-        if (snapshot.hasError || !snapshot.hasData || snapshot.data!.isEmpty) {
-          return Scaffold(
-            appBar: _buildAppBar(theme),
-            drawer: _buildDrawer(context, theme),
-            body: Center(
+    return Scaffold(
+      appBar: _buildAppBar(theme),
+      drawer: _buildDrawer(context, theme),
+      body: StreamBuilder<List<Contact>>(
+        stream: contactProvider.getContactsStream(auth.currentUser!.uid),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting ||
+              snapshot.hasError ||
+              !snapshot.hasData ||
+              snapshot.data!.isEmpty) {
+            return Center(
               child: Text(
                 'Nenhum contato encontrado',
                 style: theme.textTheme.bodyMedium,
               ),
-            ),
-            floatingActionButton: _buildFAB(context, theme),
-          );
-        }
+            );
+          }
 
-        if (contactProvider.contacts.isEmpty) {
           contactProvider.updateContacts(snapshot.data!);
-        }
-
-        return Scaffold(
-          appBar: _buildAppBar(theme),
-          drawer: _buildDrawer(context, theme),
-          body: const ContactList(),
-          floatingActionButton: _buildFAB(context, theme),
-        );
-      },
+          return const ContactList();
+        },
+      ),
+      floatingActionButton: _buildFAB(context, theme),
     );
   }
 }

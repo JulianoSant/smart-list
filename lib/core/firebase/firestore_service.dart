@@ -17,6 +17,15 @@ class FirestoreService {
     });
   }
 
+  Stream<List<Contact>> contactsStream(String userId) {
+    return _firestore
+        .collection('users')
+        .doc(userId)
+        .collection('contacts')
+        .snapshots()
+        .map((snapshot) => snapshot.docs.map((doc) => Contact.fromFirestore(doc)).toList());
+  }
+
   Future<void> addContact(String userId, Contact contact) async {
     final docRef = await contactsRef(userId).add(contact);
     await docRef.update({'id': docRef.id});

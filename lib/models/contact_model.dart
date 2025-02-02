@@ -42,4 +42,17 @@ class Contact {
       lng: map['lng'],
     );
   }
+
+  factory Contact.fromFirestore(DocumentSnapshot doc) {
+    final data = doc.data() as Map<String, dynamic>;
+    return Contact(
+      id: doc.id,
+      name: data['name'] ?? '',
+      cpf: data['cpf'] ?? '',
+      phone: data['phone'] ?? '',
+      address: data['address'] ?? '',
+      lat: (data['lat'] as num?)?.toDouble() ?? 0.0,
+      lng: (data['lng'] as num?)?.toDouble() ?? 0.0,
+    );
+  }
 }

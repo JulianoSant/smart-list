@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:smart_list/core/firebase/firestore_service.dart';
 import 'package:smart_list/core/services/api_service.dart';
@@ -35,6 +37,16 @@ class ContactProvider with ChangeNotifier {
             return a.cpf.compareTo(b.cpf);
         }
       });
+  }
+
+  StreamSubscription<List<Contact>>? _contactsSubscription;
+
+  void initialize(String userId) {
+    _contactsSubscription?.cancel();
+    _contactsSubscription = _firestoreService.contactsStream(userId).listen((contacts) {
+      _contacts = contacts;
+      notifyListeners();
+    });
   }
 
   void setFilterQuery(String query) {
@@ -79,7 +91,7 @@ class ContactProvider with ChangeNotifier {
     );
 
     await _firestoreService.addContact(userId, newContact);
-    _contacts = await getContacts(userId);
+    await loadContacts(userId);
     notifyListeners();
   }
 
@@ -88,8 +100,17 @@ class ContactProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  Future<List<Contact>> getContacts(String userId) {
-    return _firestoreService.getContacts(userId);
+  Stream<List<Contact>> getContactsStream(String userId) {
+    return _firestoreService.contactsStream(userId);
+  }
+
+  Future<void> loadContacts(String userId) async {
+    try {
+      _contacts = await _firestoreService.getContacts(userId);
+      notifyListeners();
+    } catch (e) {
+      throw Exception('Erro ao carregar contatos: $e');
+    }
   }
 
   Future<void> deleteContact(String userId, String contactId) async {
@@ -104,6 +125,12 @@ class ContactProvider with ChangeNotifier {
       debugPrint("Erro ao deletar contato: $e");
       throw Exception("Falha ao excluir o contato. Tente novamente.");
     }
+  }
+
+  @override
+  void dispose() {
+    _contactsSubscription?.cancel();
+    super.dispose();
   }
 }
 
