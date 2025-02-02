@@ -136,7 +136,9 @@ class _ContactFormState extends State<ContactForm> {
                     );
 
                     await contactProvider.addContact(authProvider.currentUser!.uid, newContact);
-                    if (context.mounted) context.go('/home');
+                    Future.delayed(const Duration(seconds: 2), () {
+                      if (context.mounted) context.go('/home');
+                    });
                   }
                 },
                 icon: const Icon(Icons.save),
