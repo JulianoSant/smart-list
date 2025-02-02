@@ -121,7 +121,7 @@ class AuthProvider with ChangeNotifier {
         await FirebaseFirestore.instance.collection('users').doc(user.uid).delete();
 
         // Exclui conta do Auth
-        await user.delete();
+        await _authService.deleteAccount(password);
 
         _user = null;
         notifyListeners();

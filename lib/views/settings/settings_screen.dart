@@ -82,7 +82,10 @@ class SettingsScreen extends StatelessWidget {
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-            onPressed: () async => auth.deleteAccount(_passwordController.text),
+            onPressed: () async {
+              await auth.deleteAccount(_passwordController.text);
+              context.go('/login');
+            },
             child: const Text('Excluir'),
           ),
         ],

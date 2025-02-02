@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 class AuthService {
@@ -25,9 +26,21 @@ class AuthService {
     await _auth.signOut();
   }
 
-  Future<void> deleteAccount() async {
-    if (_auth.currentUser != null) {
-      await _auth.currentUser!.delete();
+  Future<void> deleteAccount(String password) async {
+    final user = _auth.currentUser;
+    if (user != null) {
+      // Reautenticação
+      final credential = EmailAuthProvider.credential(
+        email: user.email!,
+        password: password,
+      );
+      await user.reauthenticateWithCredential(credential);
+
+      // Exclui dados do Firestore
+      await FirebaseFirestore.instance.collection('users').doc(user.uid).delete();
+
+      // Exclui conta do Auth
+      await user.delete();
     }
   }
 
