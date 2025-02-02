@@ -21,10 +21,20 @@ class HomeScreen extends StatelessWidget {
       body: StreamBuilder<List<Contact>>(
         stream: contactProvider.getContactsStream(auth.currentUser!.uid),
         builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting ||
-              snapshot.hasError ||
-              !snapshot.hasData ||
-              snapshot.data!.isEmpty) {
+          if (snapshot.hasError) {
+            return Center(
+              child: Text(
+                'Nenhum contato encontrado',
+                style: theme.textTheme.bodyMedium,
+              ),
+            );
+          }
+
+          if (!snapshot.hasData || snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          if (snapshot.data!.isEmpty) {
             return Center(
               child: Text(
                 'Nenhum contato encontrado',
