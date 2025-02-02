@@ -12,7 +12,7 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final auth = context.watch<AuthProvider>();
-    final contactProvider = context.read<ContactProvider>();
+    final contactProvider = context.watch<ContactProvider>();
     final theme = Theme.of(context);
 
     return FutureBuilder<List<Contact>>(

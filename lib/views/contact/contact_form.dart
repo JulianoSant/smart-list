@@ -22,6 +22,7 @@ class _ContactFormState extends State<ContactForm> {
   final _cpfController = TextEditingController();
   final _phoneController = TextEditingController();
   final _addressController = TextEditingController();
+  bool _isSaving = false;
 
   @override
   void initState() {
@@ -124,25 +125,37 @@ class _ContactFormState extends State<ContactForm> {
                 ),
               const SizedBox(height: 16),
               ElevatedButton.icon(
-                onPressed: () async {
-                  if (_formKey.currentState!.validate()) {
-                    final newContact = Contact(
-                      name: _nameController.text,
-                      cpf: _cpfController.text,
-                      phone: _phoneController.text,
-                      address: _addressController.text,
-                      lat: 0,
-                      lng: 0,
-                    );
-
-                    await contactProvider.addContact(authProvider.currentUser!.uid, newContact);
-                    Future.delayed(const Duration(seconds: 2), () {
-                      if (context.mounted) context.go('/home');
-                    });
-                  }
-                },
-                icon: const Icon(Icons.save),
-                label: const Text('Salvar Contato'),
+                onPressed: _isSaving
+                    ? null
+                    : () async {
+                        if (_formKey.currentState!.validate()) {
+                          setState(() => _isSaving = true);
+                          final newContact = Contact(
+                            name: _nameController.text,
+                            cpf: _cpfController.text,
+                            phone: _phoneController.text,
+                            address: _addressController.text,
+                            lat: 0,
+                            lng: 0,
+                          );
+                          await contactProvider.addContact(authProvider.currentUser!.uid, newContact);
+                          // await contactProvider.getContacts(authProvider.currentUser!.uid);
+                          if (mounted) {
+                            // Future.delayed(const Duration(seconds: 5), () {
+                            setState(() => _isSaving = false);
+                            context.go('/home');
+                            // });
+                          }
+                        }
+                      },
+                icon: _isSaving ? const SizedBox.shrink() : const Icon(Icons.save),
+                label: _isSaving
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                      )
+                    : const Text('Salvar Contato'),
               ),
             ],
           ),
