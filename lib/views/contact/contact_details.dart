@@ -20,7 +20,6 @@ class ContactDetailsScreen extends StatelessWidget {
     final auth = context.watch<AuthProvider>();
     final contactProvider = context.watch<ContactProvider>();
 
-    // Busca o contato na lista, com fallback de erro
     final contact = contactProvider.contacts.firstWhere(
       (c) => c.id == contactId,
       orElse: () => throw Exception('Contato não encontrado'),

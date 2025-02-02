@@ -36,10 +36,8 @@ class AuthService {
       );
       await user.reauthenticateWithCredential(credential);
 
-      // Exclui dados do Firestore
       await FirebaseFirestore.instance.collection('users').doc(user.uid).delete();
 
-      // Exclui conta do Auth
       await user.delete();
     }
   }

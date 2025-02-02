@@ -16,7 +16,6 @@ class UserModel {
     this.updatedAt,
   });
 
-  // Conversão para Firestore (CREATE)
   Map<String, dynamic> toFirestore() {
     return {
       'uid': uid,
@@ -27,7 +26,6 @@ class UserModel {
     };
   }
 
-  // Atualização parcial (UPDATE)
   Map<String, dynamic> toUpdateFirestore() {
     return {
       'email': email,
@@ -36,7 +34,6 @@ class UserModel {
     };
   }
 
-  // Criação a partir de Firebase User
   factory UserModel.fromFirebaseUser(User user) {
     return UserModel(
       uid: user.uid,
@@ -47,7 +44,6 @@ class UserModel {
     );
   }
 
-  // Criação a partir de DocumentSnapshot do Firestore
   factory UserModel.fromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
     return UserModel(
@@ -59,7 +55,6 @@ class UserModel {
     );
   }
 
-  // Cópia com alterações (para atualizações)
   UserModel copyWith({
     String? email,
     String? displayName,

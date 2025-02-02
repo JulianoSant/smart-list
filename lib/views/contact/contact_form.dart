@@ -139,12 +139,9 @@ class _ContactFormState extends State<ContactForm> {
                             lng: 0,
                           );
                           await contactProvider.addContact(authProvider.currentUser!.uid, newContact);
-                          // await contactProvider.getContacts(authProvider.currentUser!.uid);
                           if (mounted) {
-                            // Future.delayed(const Duration(seconds: 5), () {
                             setState(() => _isSaving = false);
                             context.go('/home');
-                            // });
                           }
                         }
                       },
